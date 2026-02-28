@@ -204,24 +204,30 @@ BAD_WORDS = {
 # ============================
 # Server & Web Configuration
 # ============================
-ON_HEROKU = 'DYNO' in environ
-APP_NAME = environ.get('APP_NAME')
-NO_PORT = bool(environ.get('NO_PORT', False))
-BIND_ADDRESS = str(getenv('WEB_SERVER_BIND_ADDRESS', '0.0.0.0'))
-FQDN = str(getenv('FQDN', BIND_ADDRESS)) if not ON_HEROKU or getenv('FQDN') else (f"{APP_NAME}.herokuapp.com" if APP_NAME else BIND_ADDRESS)
-URL = "https://{}/".format(FQDN) if ON_HEROKU or NO_PORT else "https://{}:{}/".format(FQDN, PORT)
+# --- 🧠 Smart Auto-Detect URL (Compact) ---
+platform_url = environ.get('FQDN') or \
+               environ.get('RAILWAY_PUBLIC_URL') or \
+               environ.get('RENDER_EXTERNAL_URL') or \
+               environ.get('KOYEB_PUBLIC_URL')
+
+if not platform_url:
+    if 'DYNO' in environ:  # Heroku
+        platform_url = f"https://{environ.get('APP_NAME', 'localhost')}.herokuapp.com"
+    elif 'KOYEB_APP_NAME' in environ:  # Koyeb
+        platform_url = f"https://{environ['KOYEB_APP_NAME']}.koyeb.app"
+    else:  # Local/VPS
+        port = environ.get('PORT', 8080)
+        platform_url = f"http://localhost:{port}"
+
+URL = platform_url.rstrip('/') + '/'
+HAS_SSL = 'https' in URL or environ.get('HAS_SSL', 'True').lower() == 'true'
+if not HAS_SSL: URL = URL.replace('https', 'http')
+
+# --- ⚙️ Baaki Config ---
+PORT = int(environ.get('PORT', 8080))
 SLEEP_THRESHOLD = int(environ.get('SLEEP_THRESHOLD', '60'))
 WORKERS = int(environ.get('WORKERS', '4'))
-SESSION_NAME = str(environ.get('SESSION_NAME', 'src'))
-MULTI_CLIENT = False
-name = str(environ.get('name', 'src'))
-PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))  # 20 minutes
-HAS_SSL = bool(getenv('HAS_SSL', True))
-
-if HAS_SSL:
-    URL = "https://{}/".format(FQDN)
-else:
-    URL = "http://{}/".format(FQDN)
+PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))
 
 # ============================
 # Reactions Configuration
