@@ -16,9 +16,9 @@ from info import *
 from utils import temp
 from Script import script
 from plugins import web_server, check_expired_premium, keep_alive
-from dreamxbotz.Bot import dreamxbotz
-from dreamxbotz.util.keepalive import ping_server
-from dreamxbotz.Bot.clients import initialize_clients
+from src.Bot import src
+from src.util.keepalive import ping_server
+from src.Bot.clients import initialize_clients
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = 500_000_000
 
@@ -35,7 +35,7 @@ logging.getLogger("pymongo").setLevel(logging.WARNING)
 
 botStartTime = time.time()
 
-def dreamxbotz_plugins_handler(app, plugins_dir: str | Path = "plugins", package_name: str = "plugins") -> list[str]:
+def src_plugins_handler(app, plugins_dir: str | Path = "plugins", package_name: str = "plugins") -> list[str]:
     plugins_dir = Path(plugins_dir)
     loaded_plugins: list[str] = []
 
@@ -82,13 +82,13 @@ def dreamxbotz_plugins_handler(app, plugins_dir: str | Path = "plugins", package
 
     return loaded_plugins
 
-async def dreamxbotz_start():
-    print('\n\nInitalizing DreamxBotz')
-    await dreamxbotz.start()
-    bot_info = await dreamxbotz.get_me()
-    dreamxbotz.username = bot_info.username
+async def src_start():
+    print('\n\nInitalizing src')
+    await src.start()
+    bot_info = await src.get_me()
+    src.username = bot_info.username
     await initialize_clients()
-    loaded_plugins = dreamxbotz_plugins_handler(dreamxbotz)
+    loaded_plugins = src_plugins_handler(src)
     if loaded_plugins:
         logging.info("✅ Plugins Loaded: %d", len(loaded_plugins))
     else:
@@ -104,13 +104,13 @@ async def dreamxbotz_start():
         print("Multiple Database Mode On. Now Files Will Be Save In Second DB If First DB Is Full")
     else:
         print("Single DB Mode On ! Files Will Be Save In First Database")
-    me = await dreamxbotz.get_me()
+    me = await src.get_me()
     temp.ME = me.id
     temp.U_NAME = me.username
     temp.B_NAME = me.first_name
     temp.B_LINK = me.mention
-    dreamxbotz.username = '@' + me.username
-    dreamxbotz.loop.create_task(check_expired_premium(dreamxbotz))
+    src.username = '@' + me.username
+    src.loop.create_task(check_expired_premium(src))
     logging.info(f"{me.first_name} with Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
     logging.info(LOG_STR)
     logging.info(script.LOGO)
@@ -118,19 +118,19 @@ async def dreamxbotz_start():
     today = date.today()
     now = datetime.now(tz)
     time = now.strftime("%H:%M:%S %p")
-    await dreamxbotz.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(temp.B_LINK, today, time))
+    await src.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(temp.B_LINK, today, time))
     app = web.AppRunner(await web_server())
     await app.setup()
     bind_address = "0.0.0.0"
     await web.TCPSite(app, bind_address, PORT).start()
-    dreamxbotz.loop.create_task(keep_alive())
+    src.loop.create_task(keep_alive())
     await idle()
     
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     while True:
         try:
-            loop.run_until_complete(dreamxbotz_start())
+            loop.run_until_complete(src_start())
             break  
         except FloodWait as e:
             print(f"FloodWait! Sleeping for {e.value} seconds.")
@@ -138,3 +138,4 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             logging.info('Service Stopped Bye 👋')
             break
+

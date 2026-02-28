@@ -2,12 +2,12 @@ import asyncio
 import logging
 from info import *
 from pyrogram import Client
-from dreamxbotz.util.config_parser import TokenParser
-from . import multi_clients, work_loads, dreamxbotz
+from src.util.config_parser import TokenParser
+from . import multi_clients, work_loads, src
 
 
 async def initialize_clients():
-    multi_clients[0] = dreamxbotz
+    multi_clients[0] = src
     work_loads[0] = 0
     all_tokens = TokenParser().parse_from_env()
     if not all_tokens:
@@ -41,3 +41,4 @@ async def initialize_clients():
         print("Multi-Client Mode Enabled")
     else:
         print("No additional clients were initialized, using default client")
+

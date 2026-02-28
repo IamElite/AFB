@@ -1,4 +1,4 @@
-#Thanks @dreamxbotz for helping in this journey 
+#Thanks @src for helping in this journey 
 import asyncio
 import logging
 import aiohttp
@@ -19,3 +19,4 @@ async def ping_server():
             logging.warning("Couldn't connect to the site URL..!")
         except Exception:
             traceback.print_exc()
+

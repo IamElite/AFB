@@ -1,5 +1,5 @@
 import os
-from plugins.Dreamxfutures.fotnt_string import Fonts
+from plugins.src_futures.fotnt_string import Fonts
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -174,6 +174,7 @@ async def style(c, m):
         await m.message.edit_text(f"`{new_text}`\n\n👆 Click To Copy", reply_markup=m.message.reply_markup)
     except Exception as e:
         print(e)
+
 
 
 

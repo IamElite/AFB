@@ -4,7 +4,7 @@ import warnings
 import logging
 from io import BytesIO
 from PIL import Image
-from info import DREAMXBOTZ_IMAGE_FETCH, TMDB_API_KEY
+from info import src_IMAGE_FETCH, TMDB_API_KEY
 from imdb import Cinemagoer
 
 
@@ -26,7 +26,7 @@ async def get_session():
 
 
 async def fetch_image(url, size=(860, 1200)):
-    if not DREAMXBOTZ_IMAGE_FETCH:
+    if not src_IMAGE_FETCH:
         logger.info("Image fetching is disabled.")
         return url
 
@@ -217,4 +217,5 @@ async def get_movie_detailsx(query, id=False, file=None):
     details['backdrop_url'] = backdrop_url.replace("/original/", "/w1280/") if backdrop_url else None
 
     return details
+
 

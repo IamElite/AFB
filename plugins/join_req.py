@@ -1,4 +1,4 @@
-#Join Telegram Channel - @DREAMXBOTZ
+#Join Telegram Channel - @src
 
 from pyrogram import Client, filters, enums
 from pyrogram.types import ChatJoinRequest
@@ -18,3 +18,4 @@ async def join_reqs(client, message: ChatJoinRequest):
 async def del_requests(client, message):
     await db.del_join_req()    
     await message.reply("<b>⚙ ꜱᴜᴄᴄᴇꜱꜱғᴜʟʟʏ ᴄʜᴀɴɴᴇʟ ʟᴇғᴛ ᴜꜱᴇʀꜱ ᴅᴇʟᴇᴛᴇᴅ</b>")
+

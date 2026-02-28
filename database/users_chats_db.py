@@ -174,7 +174,7 @@ class Database:
         else:
             return default.copy()
 
-    async def dreamx_reset_settings(self):
+    async def src_reset_settings(self):
         try:
             result = await self.grp.update_many(
                 {'settings': {'$exists': True}}, 
@@ -422,5 +422,6 @@ class Database:
      
 db = Database(DATABASE_URI, DATABASE_NAME)    
 db2 = Database(DATABASE_URI2, DATABASE_NAME)
+
 
 

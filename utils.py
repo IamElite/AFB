@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 import requests
 from shortzy import Shortzy
 
-from plugins.Dreamxfutures.Imdbposter import get_movie_detailsx
+from plugins.src_futures.Imdbposter import get_movie_detailsx
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -1072,3 +1072,4 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
     except Exception as e:
         logging.error(f"Error in get_cap: {e}")
         pass
+

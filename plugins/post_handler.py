@@ -10,7 +10,7 @@ from pyrogram.types import (
     Message,
 )
 from pyrogram.errors import MessageNotModified, MessageTooLong
-from plugins.Dreamxfutures.Imdbposter import get_movie_detailsx
+from plugins.src_futures.Imdbposter import get_movie_detailsx
 from info import ADMINS, MOVIE_UPDATE_CHANNEL, ABOVE_PREVIEW
 from utils import temp
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 post_sessions = {}
 
 USE_GETFILE_BUTTON_BY_DEFAULT = True
-DEFAULT_WATERMARK = "Join [ᴅʀᴇᴀᴍxʙᴏᴛᴢ](https://t.me/dreamxbotz)"
+DEFAULT_WATERMARK = "Join [ᴅʀᴇᴀᴍxʙᴏᴛᴢ](https://t.me/src)"
 LANGUAGES_FORMAT = "➥ <b>Languages :</b> <code>{langs}</code>"
 RESOLUTIONS_FORMAT = "\n➥ <b>Qualities :</b> <code>{resolutions}</code>"
 OTT_FORMAT = "\n➥ <b>Available on :</b> <code>{otts}</code>"
@@ -630,3 +630,4 @@ async def finalize_and_post(client: Client, query: CallbackQuery, session_id: in
             f"An unexpected error occurred while posting '{session['movie_name']}':", exc_info=True)
 
 #code is created by @bharath_boy for public use so atleast don't remove credits
+

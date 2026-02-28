@@ -318,7 +318,7 @@ def unpack_new_file_id(new_file_id):
     return file_id, file_ref
 
 
-async def dreamxbotz_fetch_media(limit: int) -> List[dict]:
+async def src_fetch_media(limit: int) -> List[dict]:
     try:
         if MULTIPLE_DB:
             db_size = await check_db_size(Media)
@@ -330,11 +330,11 @@ async def dreamxbotz_fetch_media(limit: int) -> List[dict]:
         files = await cursor.to_list(length=limit)
         return files
     except Exception as e:
-        logger.error(f"Error in dreamxbotz_fetch_media: {e}")
+        logger.error(f"Error in src_fetch_media: {e}")
         return []
 
 
-async def dreamxbotz_clean_title(filename: str, is_series: bool = False) -> str:
+async def src_clean_title(filename: str, is_series: bool = False) -> str:
     try:
         year_match = re.search(r"^(.*?(\d{4}|\(\d{4}\)))", filename, re.IGNORECASE)
         if year_match:
@@ -384,34 +384,34 @@ async def dreamxbotz_clean_title(filename: str, is_series: bool = False) -> str:
         return filename
 
 
-async def dreamxbotz_get_movies(limit: int = 20) -> List[str]:
+async def src_get_movies(limit: int = 20) -> List[str]:
     try:
-        cursor = await dreamxbotz_fetch_media(limit * 2)
+        cursor = await src_fetch_media(limit * 2)
         results = set()
         pattern = r"(?:s\d{1,2}|season\s*\d+|season\d+)(?:\s*combined)?(?:e\d{1,2}|episode\s*\d+)?\b"
         for file in cursor:
             file_name = getattr(file, "file_name", "")
             if not re.search(pattern, file_name, re.IGNORECASE):
-                title = await dreamxbotz_clean_title(file_name)
+                title = await src_clean_title(file_name)
                 results.add(title)
             if len(results) >= limit:
                 break
         return sorted(list(results))[:limit]
     except Exception as e:
-        logger.error(f"Error in dreamxbotz_get_movies: {e}")
+        logger.error(f"Error in src_get_movies: {e}")
         return []
 
 
-async def dreamxbotz_get_series(limit: int = 30) -> Dict[str, List[int]]:
+async def src_get_series(limit: int = 30) -> Dict[str, List[int]]:
     try:
-        cursor = await dreamxbotz_fetch_media(limit * 5)
+        cursor = await src_fetch_media(limit * 5)
         grouped = defaultdict(list)
         pattern = r"(.*?)(?:S(\d{1,2})|Season\s*(\d+)|Season(\d+))(?:\s*Combined)?(?:E(\d{1,2})|Episode\s*(\d+))?\b"
         for file in cursor:
             file_name = getattr(file, "file_name", "")
             match = re.search(pattern, file_name, re.IGNORECASE)
             if match:
-                title = await dreamxbotz_clean_title(match.group(1), is_series=True)
+                title = await src_clean_title(match.group(1), is_series=True)
                 season = int(match.group(2) or match.group(3) or match.group(4))
                 grouped[title].append(season)
         return {
@@ -420,5 +420,6 @@ async def dreamxbotz_get_series(limit: int = 30) -> Dict[str, List[int]]:
             if seasons
         }
     except Exception as e:
-        logger.error(f"Error in dreamxbotz_get_series: {e}")
+        logger.error(f"Error in src_get_series: {e}")
         return []
+

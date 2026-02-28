@@ -1,28 +1,8 @@
-<h1 align="center"><b>🚩 ᴊᴀɪ ꜱʜʀɪ ʀᴀᴍ 🚩</b></h1>
+<h3 align="center">
+    ─「 ᴅᴇᴩʟᴏʏ ᴏɴ ʜᴇʀᴏᴋᴜ 」─
+</h3>
 
-<p align="center">
-  <img src="https://github.com/DreamXBotz/Pics/blob/main/dreamxbotz.jpg" alt="DreamxBotz Logo">
-</p>
-
-<h1 align="center">𝓓𝓻𝓮𝓪𝓶𝔁𝓑𝓸𝓽𝔃</h1>
-
----
-
-## 👤 Owner
-
-[![Contact Developer](https://img.shields.io/static/v1?label=Contact+Developer&message=On+Telegram&color=critical)](https://t.me/Deendayal_Support_Group)
-
----
-
-<!-- > ## ⚠ <u>Under Maintenance</u> ⚠  
-> This repository is currently under maintenance. Please **DO NOT deploy** until further notice. -->
-
-## 🚀 Demo Bot
-
-
-Try the live bot here:
-
-[![Click Here](https://img.shields.io/badge/Demo%20Bot-Click%20Here-blue?style=flat&logo=telegram&labelColor=white)](https://t.me/Princess_V4_bot)
+<p align="center"><a href="https://dashboard.heroku.com/new?template=https://github.com/IamElite/AFB"> <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-black?style=for-the-badge&logo=heroku" width="220" height="38.45"/></a></p>
 
 ---
 
@@ -32,24 +12,6 @@ Try the live bot here:
 - ✅ Group Owners Can Manage Settings via Bot PM
 - ✅ Reset All Group Settings (Owner Only)
 - ✅ 3 Verification System
-
----
-
-## 🙏 Special Thanks To
-
-- 🌴 [⌯ Ꭺɴᴏɴʏᴍᴏᴜꜱ | ×͜× |](https://t.me/BeingXAnonymous)
-- 🌴 [⌯ ᴢɪsʜᴀɴ | ×͜× |](https://t.me/IM_JISSHU)
-- 🌴 [⌯ ʙʜᴀʀᴀᴛʜ | ×͜× |](https://t.me/Bharath_boy)
-- 🌴 [Harshal Purohit Edits](https://github.com/HarshalPurohitEdits)
-- 🌴 [Support Group](https://t.me/Deendayal_Support_Group)
-
----
-
-## 🛠 Need Help Deploying?
-
-Join our support group for assistance:
-
-[![Join Support Group](https://img.shields.io/badge/Join%20Support%20Group-Click%20Here-blue?style=flat&logo=telegram&labelColor=white)](https://t.me/Deendayal_Support_Group)
 
 ---
 
@@ -92,7 +54,7 @@ Join our support group for assistance:
 - ✅ Auto Delete Old Files  
 - ✅ …and more!
 
-📌 *To stay updated with all new features, join our [Updates Channel](https://t.me/dreamxbotz).*
+📌 *To stay updated with all new features, join our [Updates Channel](https://t.me/src).*
 
 ---
 
@@ -140,8 +102,9 @@ Use at your own discretion and **always respect platform rules and copyrights**.
 
 ## 📜 License
 
-This project is licensed under the [MIT License](https://github.com/MrRaazz/DreamxBotz/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/MrRaazz/src/blob/main/LICENSE)
 
 ---
 
 <p align="center"><b>Jai Shree Krishna 🙏😉</b></p>
+

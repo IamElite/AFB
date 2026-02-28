@@ -13,7 +13,7 @@ from pymediainfo import MediaInfo
 
 from database.ia_filterdb import get_file_details
 from info import BIN_CHANNEL
-from dreamxbotz.util.file_properties import get_name
+from src.util.file_properties import get_name
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ if TELEGRAPH_ACCESS_TOKEN:
 else:
     telegraph = Telegraph()
     try:
-        telegraph.create_account(short_name="DreamxBotz")
+        telegraph.create_account(short_name="src")
     except Exception:
         logger.exception("Failed to create Telegraph account")
 
@@ -189,7 +189,7 @@ async def extract_data_handler(client: Client, query: CallbackQuery):
             page_parts.append("<b>Subtitle Tracks:</b> None<br>")
 
         page_parts.append(
-            '<i><code>Join <a href="https://t.me/DreamxBotz">DreamxBotz</a></code></i>'
+            '<i><code>Join <a href="https://t.me/src">src</a></code></i>'
         )
 
         page_content = "".join(page_parts)
@@ -199,7 +199,7 @@ async def extract_data_handler(client: Client, query: CallbackQuery):
                 telegraph.create_page,
                 title=safe_title[:200],
                 html_content=page_content,
-                author_name="DreamxBotz"
+                author_name="src"
             )
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             await query.message.reply_text("⚠️ Telegraph is busy. Try again later.", quote=True)
@@ -231,3 +231,4 @@ async def extract_data_handler(client: Client, query: CallbackQuery):
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
+

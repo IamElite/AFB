@@ -1,15 +1,15 @@
-#Thanks @dreamxbotz for helping in this journey 
+#Thanks @src for helping in this journey 
 import math
 import asyncio
 import logging
 from info import *
 from typing import Dict, Union
-from dreamxbotz.Bot import work_loads
+from src.Bot import work_loads
 from pyrogram import Client, utils, raw
 from .file_properties import get_file_ids
 from pyrogram.session import Session, Auth
 from pyrogram.errors import AuthBytesInvalid
-from dreamxbotz.server.exceptions import FIleNotFound
+from src.server.exceptions import FIleNotFound
 from pyrogram.file_id import FileId, FileType, ThumbnailSource
 
 
@@ -228,3 +228,4 @@ class ByteStreamer:
             await asyncio.sleep(self.clean_timer)
             self.cached_file_ids.clear()
             logging.debug("Cleaned the cache")
+

@@ -5,10 +5,10 @@ import logging
 import secrets
 import mimetypes
 from aiohttp.http_exceptions import BadStatusLine
-from dreamxbotz.Bot import multi_clients, work_loads
-from dreamxbotz.server.exceptions import FIleNotFound, InvalidHash
-from dreamxbotz.util.custom_dl import ByteStreamer
-from dreamxbotz.util.render_template import render_page
+from src.Bot import multi_clients, work_loads
+from src.server.exceptions import FIleNotFound, InvalidHash
+from src.util.custom_dl import ByteStreamer
+from src.util.render_template import render_page
 from info import *
 
 
@@ -16,11 +16,11 @@ routes = web.RouteTableDef()
 
 @routes.get("/favicon.ico")
 async def favicon_route_handler(request):
-    return web.FileResponse('dreamxbotz/template/favicon.ico')
+    return web.FileResponse('src/template/favicon.ico')
 
 @routes.get("/", allow_head=True)
 async def root_route_handler(request):
-    return web.json_response("dreamxbotz")
+    return web.json_response("src")
 
 @routes.get(r"/watch/{path:\S+}", allow_head=True)
 async def watch_handler(request: web.Request):
@@ -161,3 +161,4 @@ async def media_streamer(request: web.Request, id: int, secure_hash: str):
             "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges",
         },
     )
+
