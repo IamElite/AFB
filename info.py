@@ -204,30 +204,35 @@ BAD_WORDS = {
 # ============================
 # Server & Web Configuration
 # ============================
-# --- 🧠 Smart Auto-Detect URL (Compact) ---
-platform_url = environ.get('FQDN') or \
-               environ.get('RAILWAY_PUBLIC_URL') or \
-               environ.get('RENDER_EXTERNAL_URL') or \
-               environ.get('KOYEB_PUBLIC_URL')
+# --- 🧠 Smart Auto-Detect (Fixed) ---
+ON_HEROKU = 'DYNO' in environ 
+ON_KOYEB = 'KOYEB_APP_NAME' in environ
 
-if not platform_url:
-    if 'DYNO' in environ:  # Heroku
-        platform_url = f"https://{environ.get('APP_NAME', 'localhost')}.herokuapp.com"
-    elif 'KOYEB_APP_NAME' in environ:  # Koyeb
-        platform_url = f"https://{environ['KOYEB_APP_NAME']}.koyeb.app"
-    else:  # Local/VPS
-        port = environ.get('PORT', 8080)
-        platform_url = f"http://localhost:{port}"
+# URL Detection Priority
+FQDN = environ.get('FQDN') or \
+       environ.get('RAILWAY_PUBLIC_URL') or \
+       environ.get('RENDER_EXTERNAL_URL') or \
+       environ.get('KOYEB_PUBLIC_URL')
 
-URL = platform_url.rstrip('/') + '/'
+if not FQDN:
+    if ON_HEROKU:
+        FQDN = f"https://{environ.get('APP_NAME', 'localhost')}.herokuapp.com"
+    elif ON_KOYEB:
+        FQDN = f"https://{environ['KOYEB_APP_NAME']}.koyeb.app"
+    else:
+        FQDN = f"http://localhost:{environ.get('PORT', 8080)}"
+
+URL = FQDN.rstrip('/') + '/'
+PORT = int(environ.get('PORT', 8080))
 HAS_SSL = 'https' in URL or environ.get('HAS_SSL', 'True').lower() == 'true'
 if not HAS_SSL: URL = URL.replace('https', 'http')
 
 # --- ⚙️ Baaki Config ---
-PORT = int(environ.get('PORT', 8080))
 SLEEP_THRESHOLD = int(environ.get('SLEEP_THRESHOLD', '60'))
 WORKERS = int(environ.get('WORKERS', '4'))
 PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))
+SESSION_NAME = str(environ.get('SESSION_NAME', 'src'))
+MULTI_CLIENT = False
 
 # ============================
 # Reactions Configuration
