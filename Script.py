@@ -249,14 +249,17 @@ Mᴇꜱꜱᴀɢᴇ : <b>{}</b>"""
 """
 
 
-    IMDB_TEMPLATE_TXT = """<b><a href={url}>{title} (<a href={url}/releaseinfo>{year}</a>)
+    IMDB_TEMPLATE_TXT = """
+<b><blockquote>➲ {title} ({year})</blockquote>
+┏━━━━━━━━━━━━━━━
+┃ 🌟 Rᴀᴛɪɴɢ: {rating}
+┃ 🎭 Gᴇɴʀᴇ: {genres}
+┃ 🎧 Lᴀɴɢs: {languages}
+┃ ⚡ Sᴘᴇᴇᴅ: {remaining_seconds}s
+┗━━━━━━━━━━━━━━━
+👤 Req By: {message.from_user.mention}</b>
 
-ʀᴀᴛɪɴɢ : <a href={url}/ratings>{rating}</a>
-ɢᴇɴʀᴇ : {genres}
-ᴀᴜᴅɪᴏ : {languages}
-
-sʜᴏᴡɴ ɪɴ : {remaining_seconds} <i>sᴇᴄ</i>⚡️
-<b>ʀᴇǫ ʙʏ : {message.from_user.mention}</b>"""
+<u>Your Requested Files Are Here</u> \n\n"""
 
     LOGO = r"""
     ██████╗░██████╗░███████╗░█████╗░███╗░░░███╗██╗░░██╗██████╗░░█████╗░████████╗███████╗

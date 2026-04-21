@@ -1,6 +1,7 @@
 import re
 import os
 from os import environ, getenv
+import contextvars
 from Script import script
 
 # Utility functions
@@ -227,7 +228,46 @@ PORT = int(environ.get('PORT', 8080))
 HAS_SSL = 'https' in URL or environ.get('HAS_SSL', 'True').lower() == 'true'
 if not HAS_SSL: URL = URL.replace('https', 'http')
 
-# --- ⚙️ Baaki Config ---
+# --- ⚙️ Baaki Config --
+# Global Context Variable for aiohttp request
+request_var = contextvars.ContextVar('request', default=None)
+
+# Platform Flags (Safe for Startup)
+ON_HEROKU = 'DYNO' in environ
+ON_KOYEB = 'KOYEB_APP_NAME' in environ
+
+def get_base_url():
+    """Detects the base URL dynamically at runtime using request context or fallbacks."""
+    request = request_var.get()
+    if request:
+        return f"{request.scheme}://{request.host}"
+    
+    # Static fallbacks
+    fqdn = (
+        environ.get('FQDN') or 
+        environ.get('RAILWAY_PUBLIC_URL') or 
+        environ.get('RENDER_EXTERNAL_URL') or 
+        environ.get('KOYEB_PUBLIC_URL')
+    )
+    
+    if not fqdn:
+        if ON_HEROKU:
+            fqdn = f"{environ.get('APP_NAME', 'localhost')}.herokuapp.com"
+        elif ON_KOYEB:
+            fqdn = f"{environ['KOYEB_APP_NAME']}.koyeb.app"
+        else:
+            fqdn = f"localhost:{environ.get('PORT', 8080)}"
+    
+    if not fqdn.startswith(('http://', 'https://')):
+        scheme = 'https' if is_enabled(environ.get('HAS_SSL', 'True'), True) else 'http'
+        fqdn = f"{scheme}://{fqdn}"
+    
+    return fqdn.rstrip('/')
+
+# Dynamic URL used throughout the project
+URL = get_base_url() + '/'
+PORT = int(environ.get('PORT', 8080))
+
 SLEEP_THRESHOLD = int(environ.get('SLEEP_THRESHOLD', '60'))
 WORKERS = int(environ.get('WORKERS', '4'))
 PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))
@@ -286,4 +326,3 @@ LOG_STR += ("BUTTON_MODE is found, filename and file size will be shown in a sin
 LOG_STR += (f"CUSTOM_FILE_CAPTION enabled with value {CUSTOM_FILE_CAPTION}, your files will be sent along with this customized caption.\n" if CUSTOM_FILE_CAPTION else "No CUSTOM_FILE_CAPTION Found, Default captions of file will be used.\n")
 LOG_STR += ("Long IMDB storyline enabled." if LONG_IMDB_DESCRIPTION else "LONG_IMDB_DESCRIPTION is disabled, Plot will be shorter.\n")
 LOG_STR += ("Spell Check Mode is enabled, bot will be suggesting related movies if movie name is misspelled.\n" if SPELL_CHECK_REPLY else "Spell Check Mode is disabled.\n")
-
