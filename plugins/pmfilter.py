@@ -1,4 +1,4 @@
-from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed, group_setting_buttons, get_poster, get_posterx, temp, get_settings, save_group_settings, get_cap, imdb, is_check_admin, extract_request_content, log_error, clean_filename, generate_season_variations, clean_search_text
+from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed, group_setting_buttons, get_poster, get_posterx, temp, get_settings, save_group_settings, get_cap, imdb, is_check_admin, extract_request_content, log_error, clean_filename, generate_season_variations, clean_search_text, sort_files_by_episode
 import tracemalloc
 from fuzzywuzzy import process
 import logging
@@ -164,6 +164,7 @@ async def next_page(bot, query):
 
     if not files:
         return
+    files = sort_files_by_episode(files)
     temp.GETALL[key] = files
     temp.SHORT[query.from_user.id] = query.message.chat.id
     settings = await get_settings(query.message.chat.id)
@@ -445,6 +446,7 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     if not files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
+    files = sort_files_by_episode(files)
     temp.GETALL[key] = files
     settings = await get_settings(message.chat.id)
     if settings.get('button'):
@@ -604,6 +606,7 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     if not files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
+    files = sort_files_by_episode(files)
     temp.GETALL[key] = files
     settings = await get_settings(message.chat.id)
     if settings.get('button'):
@@ -753,7 +756,7 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
     if not files:
         BUTTONS[key] = None
         return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
-
+    files = sort_files_by_episode(files)
     temp.GETALL[key] = files
     settings = await get_settings(chat_id)
     btn: list[list[InlineKeyboardButton]] = []
@@ -1728,6 +1731,7 @@ async def auto_filter(client, msg, spoll=False):
                 search = re.sub(r"[:']", "", search)
                 search = re.sub(r"\s+", " ", search).strip()
                 files, offset, total_results = await get_search_results(message.chat.id, search, offset=0, filter=True)
+                files = sort_files_by_episode(files)
                 settings = await get_settings(message.chat.id)
                 if not files:
                     if settings.get("spell_check"):
@@ -1754,6 +1758,7 @@ async def auto_filter(client, msg, spoll=False):
         else:
             message = msg.message.reply_to_message
             search, files, offset, total_results = spoll
+            files = sort_files_by_episode(files)
             m = await message.reply_text(f'🔎 sᴇᴀʀᴄʜɪɴɢ {search}', reply_to_message_id=message.id)
             settings = await get_settings(message.chat.id)
             await msg.message.delete()

@@ -548,6 +548,23 @@ def clean_filename(file_name):
     )
     return file_name
 
+def extract_season_episode(filename: str) -> tuple:
+    filename_lower = filename.lower()
+    season_match = re.search(r's(?:eason)?\.?\s*(\d+)', filename_lower)
+    season = int(season_match.group(1)) if season_match else 0
+    ep_match = re.search(r'(?:e|ep|episode)\.?\s*(\d+)', filename_lower)
+    episode = int(ep_match.group(1)) if ep_match else 999
+    quality_map = {'2160p': 4, '4k': 4, '1080p': 3, '720p': 2, '480p': 1, '360p': 0}
+    quality_priority = 0
+    for q, p in quality_map.items():
+        if q in filename_lower:
+            quality_priority = p
+            break
+    return (season, episode, quality_priority)
+
+def sort_files_by_episode(files: list) -> list:
+    return sorted(files, key=lambda f: extract_season_episode(f.file_name))
+
 def get_size(size):
     units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB"]
     size = float(size)
