@@ -52,6 +52,7 @@ class temp(object):
     B_LINK = None
     SETTINGS = {}
     GETALL = {}
+    ALL = {}
     SHORT = {}
     IMDB_CAP = {}
     VERIFICATIONS = {}

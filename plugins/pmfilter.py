@@ -156,18 +156,17 @@ async def next_page(bot, query):
     if not search:
         await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
         return
-    files, n_offset, total = await get_search_results(query.message.chat.id, search, offset=offset, filter=True)
-    try:
-        n_offset = int(n_offset)
-    except:
-        n_offset = 0
-
-    if not files:
+    all_files, total_count, _ = await get_search_results(query.message.chat.id, search, offset=0, filter=True, fetch_all=True)
+    if not all_files:
         return
-    files = sort_files_by_episode(files)
+    all_files = sort_files_by_episode(all_files)
+    settings = await get_settings(query.message.chat.id)
+    total = len(all_files)
+    page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
+    files = all_files[offset:offset + page_size]
+    n_offset = offset + page_size if offset + page_size < total else ""
     temp.GETALL[key] = files
     temp.SHORT[query.from_user.id] = query.message.chat.id
-    settings = await get_settings(query.message.chat.id)
     if settings.get('button'):
         btn = [
             [
@@ -363,9 +362,9 @@ async def advantage_spoll_choker(bot, query):
     movie = re.sub(r"[:-]", " ", movie)
     movie = re.sub(r"\s+", " ", movie).strip()
     await query.answer(script.TOP_ALRT_MSG)
-    files, offset, total_results = await get_search_results(query.message.chat.id, movie, offset=0, filter=True)
+    files, total_count, _ = await get_search_results(query.message.chat.id, movie, offset=0, filter=True, fetch_all=True)
     if files:
-        k = (movie, files, offset, total_results)
+        k = (movie, files, total_count, total_count)
         await auto_filter(bot, query, k)
     else:
         reqstr1 = query.from_user.id if query.from_user else 0
@@ -442,13 +441,17 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     if qual != "homepage":
         search = f"{search} {qual}"
     BUTTONS[key] = search
-    files, offset, total_results = await get_search_results(chat_id, search, offset=0, filter=True)
-    if not files:
+    all_files, total_count, _ = await get_search_results(chat_id, search, offset=0, filter=True, fetch_all=True)
+    if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
-    files = sort_files_by_episode(files)
-    temp.GETALL[key] = files
+    all_files = sort_files_by_episode(all_files)
     settings = await get_settings(message.chat.id)
+    page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
+    files = all_files[:page_size]
+    total_results = len(all_files)
+    offset = page_size if total_results > page_size else ""
+    temp.GETALL[key] = files
     if settings.get('button'):
         btn = [
             [
@@ -602,13 +605,17 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     if lang != "homepage":
         search = f"{search} {lang}"
     BUTTONS[key] = search
-    files, offset, total_results = await get_search_results(chat_id, search, offset=0, filter=True)
-    if not files:
+    all_files, total_count, _ = await get_search_results(chat_id, search, offset=0, filter=True, fetch_all=True)
+    if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
-    files = sort_files_by_episode(files)
-    temp.GETALL[key] = files
+    all_files = sort_files_by_episode(all_files)
     settings = await get_settings(message.chat.id)
+    page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
+    files = all_files[:page_size]
+    total_results = len(all_files)
+    offset = page_size if total_results > page_size else ""
+    temp.GETALL[key] = files
     if settings.get('button'):
         btn = [
             [
@@ -752,13 +759,17 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
 
     chat_id = query.message.chat.id
     req = query.from_user.id
-    files, n_offset, total_results = await get_search_results(chat_id, query_input, offset=0, filter=True)
-    if not files:
+    all_files, total_count, _ = await get_search_results(chat_id, query_input, offset=0, filter=True, fetch_all=True)
+    if not all_files:
         BUTTONS[key] = None
         return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
-    files = sort_files_by_episode(files)
-    temp.GETALL[key] = files
+    all_files = sort_files_by_episode(all_files)
     settings = await get_settings(chat_id)
+    page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
+    files = all_files[:page_size]
+    total_results = len(all_files)
+    n_offset = page_size if total_results > page_size else ""
+    temp.GETALL[key] = files
     btn: list[list[InlineKeyboardButton]] = []
     if settings.get("button"):
         btn.extend(
@@ -1730,9 +1741,13 @@ async def auto_filter(client, msg, spoll=False):
                 search = search.replace("-", " ")
                 search = re.sub(r"[:']", "", search)
                 search = re.sub(r"\s+", " ", search).strip()
-                files, offset, total_results = await get_search_results(message.chat.id, search, offset=0, filter=True)
-                files = sort_files_by_episode(files)
+                all_files, total_count, _ = await get_search_results(message.chat.id, search, offset=0, filter=True, fetch_all=True)
+                all_files = sort_files_by_episode(all_files)
                 settings = await get_settings(message.chat.id)
+                total_results = len(all_files)
+                page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
+                offset = page_size if total_results > page_size else ""
+                files = all_files[:page_size]
                 if not files:
                     if settings.get("spell_check"):
                         ai_sts = await m.edit('🤖 ᴘʟᴇᴀꜱᴇ ᴡᴀɪᴛ, ᴀɪ ɪꜱ ᴄʜᴇᴄᴋɪɴɢ ʏᴏᴜʀ ꜱᴘᴇʟʟɪɴɢ...')
@@ -1757,14 +1772,20 @@ async def auto_filter(client, msg, spoll=False):
                 return
         else:
             message = msg.message.reply_to_message
-            search, files, offset, total_results = spoll
-            files = sort_files_by_episode(files)
+            search = spoll[0] if isinstance(spoll, (list, tuple)) else spoll
             m = await message.reply_text(f'🔎 sᴇᴀʀᴄʜɪɴɢ {search}', reply_to_message_id=message.id)
+            all_files, total_count, _ = await get_search_results(message.chat.id, search, offset=0, filter=True, fetch_all=True)
+            all_files = sort_files_by_episode(all_files)
             settings = await get_settings(message.chat.id)
+            total_results = len(all_files)
+            page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
+            offset = page_size if total_results > page_size else ""
+            files = all_files[:page_size]
             await msg.message.delete()
         key = f"{message.chat.id}-{message.id}"
         FRESH[key] = search
         temp.GETALL[key] = files
+        temp.ALL[key] = all_files
         temp.SHORT[message.from_user.id] = message.chat.id
         if settings.get('button'):
             btn = [

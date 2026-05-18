@@ -143,7 +143,7 @@ async def save_file(media):
     #logger.info(f"[SUCCESS] '{file_name}' saved to {target_db} DB.")
     return True, 1
 
-async def get_search_results(chat_id, query, file_type=None, max_results=None, offset=0, filter=False):
+async def get_search_results(chat_id, query, file_type=None, max_results=None, offset=0, filter=False, fetch_all=False):
     if chat_id is not None:
         settings = await get_settings(int(chat_id))
         if max_results is None:
@@ -190,6 +190,16 @@ async def get_search_results(chat_id, query, file_type=None, max_results=None, o
 
     if file_type:
         filter_mongo["file_type"] = file_type
+    
+    if fetch_all:
+        find_tasks = [Media.find(filter_mongo).sort("$natural", -1).to_list(length=None)]
+        if MULTIPLE_DB:
+            find_tasks.append(Media2.find(filter_mongo).sort("$natural", -1).to_list(length=None))
+        results = await asyncio.gather(*find_tasks)
+        files = results[0]
+        if MULTIPLE_DB and len(results) > 1:
+            files.extend(results[1])
+        return files, len(files), len(files)
     
     # The rest of the function remains the same, using parallel queries.
     if ULTRA_FAST_MODE:
