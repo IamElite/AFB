@@ -259,7 +259,7 @@ Mᴇꜱꜱᴀɢᴇ : <b>{}</b>"""
 ┗━━━━━━━━━━━━━━━
 👤 Req By: {message.from_user.mention}</b>
 
-<u>Your Requested Files Are Here</u> \n\n"""
+<u>Your Requested Files Are Here</u></b>\n\n"""
 
     LOGO = r"""
     ██████╗░██████╗░███████╗░█████╗░███╗░░░███╗██╗░░██╗██████╗░░█████╗░████████╗███████╗

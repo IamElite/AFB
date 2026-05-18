@@ -566,6 +566,77 @@ def extract_season_episode(filename: str) -> tuple:
 def sort_files_by_episode(files: list) -> list:
     return sorted(files, key=lambda f: extract_season_episode(f.file_name))
 
+def parse_search_query(raw_query: str) -> dict:
+    result = {'title': '', 'season': None, 'ep_start': None, 'ep_end': None, 'quality': None, 'lang': None}
+    if not raw_query:
+        return result
+    query = raw_query.strip()
+    original = query
+
+    quality_pat = r'\b(360p|480p|720p|1080p|1440p|2160p|4k)\b'
+    quality_match = re.search(quality_pat, query, re.IGNORECASE)
+    if quality_match:
+        result['quality'] = quality_match.group(1).lower()
+        if result['quality'] == '4k':
+            result['quality'] = '2160p'
+        query = re.sub(quality_pat, '', query, flags=re.IGNORECASE).strip()
+
+    lang_pat = r'\b(hin(?:di)?|eng(?:lish)?|mal(?:ayalam)?|tam(?:il)?|tel(?:ugu)?|kan(?:nada)?|ben(?:gali)?|mar(?:athi)?|urdu|guj(?:arat)?|pun(?:jabi)?|multi|jap(?:anese)?|dub(?:bed)?|dual|kor(?:ean)?|chi(?:nese)?)\b'
+    lang_match = re.search(lang_pat, query, re.IGNORECASE)
+    if lang_match:
+        result['lang'] = lang_match.group(1).lower()
+        query = re.sub(lang_pat, '', query, flags=re.IGNORECASE).strip()
+
+    ep_range_pat = r'(?:e(?:p(?:isode)?)?s?\s*(\d+)\s*[-–]\s*(\d+))'
+    ep_range_match = re.search(ep_range_pat, query, re.IGNORECASE)
+    if ep_range_match:
+        result['ep_start'] = int(ep_range_match.group(1))
+        result['ep_end'] = int(ep_range_match.group(2))
+        query = re.sub(ep_range_pat, '', query, flags=re.IGNORECASE).strip()
+
+    single_ep_pat = r'\b(?:e|ep|episode)\.?\s*(\d+)\b'
+    single_ep_match = re.search(single_ep_pat, query, re.IGNORECASE)
+    if single_ep_match and result['ep_start'] is None:
+        result['ep_start'] = int(single_ep_match.group(1))
+        result['ep_end'] = result['ep_start']
+        query = re.sub(single_ep_pat, '', query, flags=re.IGNORECASE).strip()
+
+    season_pat = r'(?:s(?:eason)?[-.\s]*(\d+))'
+    season_match = re.search(season_pat, query, re.IGNORECASE)
+    if season_match:
+        result['season'] = int(season_match.group(1))
+        query = re.sub(season_pat, '', query, flags=re.IGNORECASE).strip()
+
+    title = re.sub(r'\s+', ' ', query).strip()
+    result['title'] = title if title else original
+    return result
+
+
+def filter_files_by_query(files: list, parsed: dict) -> list:
+    if not parsed:
+        return files
+    result = files
+    if parsed.get('season') is not None:
+        season_str = f"s{parsed['season']:02d}"
+        result = [f for f in result if re.search(season_str, f.file_name, re.IGNORECASE)]
+    if parsed.get('ep_start') is not None:
+        eps_to_find = set(range(parsed['ep_start'], (parsed.get('ep_end') or parsed['ep_start']) + 1))
+        def has_any_ep(fname):
+            fname_lower = fname.lower()
+            for ep in eps_to_find:
+                if re.search(rf'(?:e|ep|episode)\s*{ep}\b', fname_lower, re.IGNORECASE):
+                    return True
+            return False
+        result = [f for f in result if has_any_ep(f.file_name)]
+    if parsed.get('quality'):
+        q = parsed['quality'].lower()
+        result = [f for f in result if q in f.file_name.lower()]
+    if parsed.get('lang'):
+        lang = parsed['lang'].lower()
+        result = [f for f in result if lang in f.file_name.lower()]
+    return result
+
+
 def get_size(size):
     units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB"]
     size = float(size)

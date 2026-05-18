@@ -1,4 +1,4 @@
-from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed, group_setting_buttons, get_poster, get_posterx, temp, get_settings, save_group_settings, get_cap, imdb, is_check_admin, extract_request_content, log_error, clean_filename, generate_season_variations, clean_search_text, sort_files_by_episode
+from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed, group_setting_buttons, get_poster, get_posterx, temp, get_settings, save_group_settings, get_cap, imdb, is_check_admin, extract_request_content, log_error, clean_filename, generate_season_variations, clean_search_text, sort_files_by_episode, parse_search_query, filter_files_by_query
 import tracemalloc
 from fuzzywuzzy import process
 import logging
@@ -1741,8 +1741,13 @@ async def auto_filter(client, msg, spoll=False):
                 search = search.replace("-", " ")
                 search = re.sub(r"[:']", "", search)
                 search = re.sub(r"\s+", " ", search).strip()
-                all_files, total_count, _ = await get_search_results(message.chat.id, search, offset=0, filter=True, fetch_all=True)
+                parsed = parse_search_query(search)
+                db_search = parsed['title'].lower() if (parsed['season'] or parsed['ep_start'] or parsed['quality'] or parsed['lang']) else search
+                all_files, total_count, _ = await get_search_results(message.chat.id, db_search, offset=0, filter=True, fetch_all=True)
                 all_files = sort_files_by_episode(all_files)
+                if parsed['season'] or parsed['ep_start'] or parsed['quality'] or parsed['lang']:
+                    all_files = filter_files_by_query(all_files, parsed)
+                    all_files = sort_files_by_episode(all_files)
                 settings = await get_settings(message.chat.id)
                 total_results = len(all_files)
                 page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
@@ -1774,8 +1779,13 @@ async def auto_filter(client, msg, spoll=False):
             message = msg.message.reply_to_message
             search = spoll[0] if isinstance(spoll, (list, tuple)) else spoll
             m = await message.reply_text(f'🔎 sᴇᴀʀᴄʜɪɴɢ {search}', reply_to_message_id=message.id)
-            all_files, total_count, _ = await get_search_results(message.chat.id, search, offset=0, filter=True, fetch_all=True)
+            parsed = parse_search_query(search)
+            db_search = parsed['title'].lower() if (parsed['season'] or parsed['ep_start'] or parsed['quality'] or parsed['lang']) else search
+            all_files, total_count, _ = await get_search_results(message.chat.id, db_search, offset=0, filter=True, fetch_all=True)
             all_files = sort_files_by_episode(all_files)
+            if parsed['season'] or parsed['ep_start'] or parsed['quality'] or parsed['lang']:
+                all_files = filter_files_by_query(all_files, parsed)
+                all_files = sort_files_by_episode(all_files)
             settings = await get_settings(message.chat.id)
             total_results = len(all_files)
             page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
