@@ -13,5 +13,7 @@ RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore && \
 
 COPY . .
 
-CMD ["python3", "bot.py"]
+RUN chmod +x update.sh
+
+CMD ["sh", "update.sh"]
 

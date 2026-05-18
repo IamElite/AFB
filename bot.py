@@ -9,16 +9,13 @@ from datetime import date, datetime
 from pathlib import Path
 import importlib.util
 import pytz
-from aiohttp import web
 from database.ia_filterdb import Media, Media2
 from database.users_chats_db import db
 from info import *
 from utils import temp
 from Script import script
-from plugins import web_server, check_expired_premium, keep_alive
+from plugins import check_expired_premium
 from src.Bot import src
-from src.util.keepalive import ping_server
-from src.Bot.clients import initialize_clients
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = 500_000_000
 
@@ -87,14 +84,11 @@ async def src_start():
     await src.start()
     bot_info = await src.get_me()
     src.username = bot_info.username
-    await initialize_clients()
     loaded_plugins = src_plugins_handler(src)
     if loaded_plugins:
         logging.info("✅ Plugins Loaded: %d", len(loaded_plugins))
     else:
         logging.info("⚠️ No Plugins Loaded.")
-    if ON_HEROKU:
-        asyncio.create_task(ping_server()) 
     b_users, b_chats = await db.get_banned()
     temp.BANNED_USERS = b_users
     temp.BANNED_CHATS = b_chats
@@ -119,11 +113,6 @@ async def src_start():
     now = datetime.now(tz)
     time = now.strftime("%H:%M:%S %p")
     await src.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(temp.B_LINK, today, time))
-    app = web.AppRunner(await web_server())
-    await app.setup()
-    bind_address = "0.0.0.0"
-    await web.TCPSite(app, bind_address, PORT).start()
-    src.loop.create_task(keep_alive())
     await idle()
     
 if __name__ == '__main__':

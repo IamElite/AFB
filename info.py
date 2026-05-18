@@ -1,7 +1,6 @@
 import re
 import os
 from os import environ, getenv
-import contextvars
 from Script import script
 
 # Utility functions
@@ -162,8 +161,6 @@ PROTECT_CONTENT = is_enabled((environ.get('PROTECT_CONTENT', "False")), False) #
 PM_SEARCH = bool(environ.get('PM_SEARCH', True))  # PM Search On (True) / Off (False)
 EMOJI_MODE = bool(environ.get('EMOJI_MODE', True))  # Emoji status On (True) / Off (False)
 BUTTON_MODE = is_enabled((environ.get('BUTTON_MODE', "False")), False) # pm & Group button or link mode (True) / Off (False)
-STREAM_MODE = bool(environ.get('STREAM_MODE', True)) # Set Stream mode True or False
-PREMIUM_STREAM_MODE = bool(environ.get('PREMIUM_STREAM_MODE', False)) # Set Stream mode True or False only for premium users
 
 
 # ============================
@@ -202,77 +199,9 @@ BAD_WORDS = {
 } # Set of bad words to filter out
    
 
-# ============================
-# Server & Web Configuration
-# ============================
-# --- 🧠 Smart Auto-Detect (Fixed) ---
-ON_HEROKU = 'DYNO' in environ 
-ON_KOYEB = 'KOYEB_APP_NAME' in environ
-
-# URL Detection Priority
-FQDN = environ.get('FQDN') or \
-       environ.get('RAILWAY_PUBLIC_URL') or \
-       environ.get('RENDER_EXTERNAL_URL') or \
-       environ.get('KOYEB_PUBLIC_URL')
-
-if not FQDN:
-    if ON_HEROKU:
-        FQDN = f"https://{environ.get('APP_NAME', 'localhost')}.herokuapp.com"
-    elif ON_KOYEB:
-        FQDN = f"https://{environ['KOYEB_APP_NAME']}.koyeb.app"
-    else:
-        FQDN = f"http://localhost:{environ.get('PORT', 8080)}"
-
-URL = FQDN.rstrip('/') + '/'
-PORT = int(environ.get('PORT', 8080))
-HAS_SSL = 'https' in URL or environ.get('HAS_SSL', 'True').lower() == 'true'
-if not HAS_SSL: URL = URL.replace('https', 'http')
-
-# --- ⚙️ Baaki Config --
-# Global Context Variable for aiohttp request
-request_var = contextvars.ContextVar('request', default=None)
-
-# Platform Flags (Safe for Startup)
-ON_HEROKU = 'DYNO' in environ
-ON_KOYEB = 'KOYEB_APP_NAME' in environ
-
-def get_base_url():
-    """Detects the base URL dynamically at runtime using request context or fallbacks."""
-    request = request_var.get()
-    if request:
-        return f"{request.scheme}://{request.host}"
-    
-    # Static fallbacks
-    fqdn = (
-        environ.get('FQDN') or 
-        environ.get('RAILWAY_PUBLIC_URL') or 
-        environ.get('RENDER_EXTERNAL_URL') or 
-        environ.get('KOYEB_PUBLIC_URL')
-    )
-    
-    if not fqdn:
-        if ON_HEROKU:
-            fqdn = f"{environ.get('APP_NAME', 'localhost')}.herokuapp.com"
-        elif ON_KOYEB:
-            fqdn = f"{environ['KOYEB_APP_NAME']}.koyeb.app"
-        else:
-            fqdn = f"localhost:{environ.get('PORT', 8080)}"
-    
-    if not fqdn.startswith(('http://', 'https://')):
-        scheme = 'https' if is_enabled(environ.get('HAS_SSL', 'True'), True) else 'http'
-        fqdn = f"{scheme}://{fqdn}"
-    
-    return fqdn.rstrip('/')
-
-# Dynamic URL used throughout the project
-URL = get_base_url() + '/'
-PORT = int(environ.get('PORT', 8080))
-
 SLEEP_THRESHOLD = int(environ.get('SLEEP_THRESHOLD', '60'))
 WORKERS = int(environ.get('WORKERS', '4'))
-PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))
 SESSION_NAME = str(environ.get('SESSION_NAME', 'src'))
-MULTI_CLIENT = False
 
 # ============================
 # Reactions Configuration

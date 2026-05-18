@@ -15,8 +15,6 @@ from pyrogram import Client
 from info import *
 from typing import Union, Optional, AsyncGenerator
 from pyrogram import types
-from aiohttp import web
-
 from pyrogram import Client
 from info import *
 
@@ -73,7 +71,4 @@ class dreamcinezoneXBot(Client):
                 current += 1
       
 src = dreamcinezoneXBot()
-
-multi_clients = {}
-work_loads = {}
 

@@ -1074,22 +1074,4 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
         logging.error(f"Error in get_cap: {e}")
         pass
 
-class AppConfig:
-    _base_url = None
 
-    @classmethod
-    def set_base_url(cls, url):
-        cls._base_url = url.rstrip("/") + "/"
-        
-    @classmethod
-    def get_base_url(cls):
-        if cls._base_url:
-            return cls._base_url
-        try:
-            from info import URL
-            return URL
-        except ImportError:
-            return "http://localhost/"
-
-def get_url():
-    return AppConfig.get_base_url()
