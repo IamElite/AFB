@@ -1162,4 +1162,51 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
         logging.error(f"Error in get_cap: {e}")
         pass
 
+# ponytail: dynamic filter button extraction — only show options present in results
+
+_QUALITY_PAT = re.compile(r'\b(360p|480p|720p|1080p|1440p|2160p|4k)\b', re.IGNORECASE)
+_QUALITY_ORDER = {'360P': 0, '480P': 1, '720P': 2, '1080P': 3, '1440P': 4, '2160P': 5, '4K': 6}
+
+def extract_available_qualities(files):
+    found = set()
+    for f in files:
+        for m in _QUALITY_PAT.findall(f.file_name):
+            found.add(m.upper())
+    return sorted(found, key=lambda q: _QUALITY_ORDER.get(q, 99))
+
+_LANG_MAP = {
+    'hin': ('ʜɪɴᴅɪ', 'hin'), 'hindi': ('ʜɪɴᴅɪ', 'hin'),
+    'eng': ('ᴇɴɢʟɪsʜ', 'eng'), 'english': ('ᴇɴɢʟɪsʜ', 'eng'),
+    'tam': ('ᴛᴀᴍɪʟ', 'tam'), 'tamil': ('ᴛᴀᴍɪʟ', 'tam'),
+    'mal': ('ᴍᴀʟᴀʏᴀʟᴀᴍ', 'mal'), 'malayalam': ('ᴍᴀʟᴀʏᴀʟᴀᴍ', 'mal'),
+    'tel': ('ᴛᴇʟᴜɢᴜ', 'tel'), 'telugu': ('ᴛᴇʟᴜɢᴜ', 'tel'),
+    'kan': ('ᴋᴀɴɴᴀᴅᴀ', 'kan'), 'kannada': ('ᴋᴀɴɴᴀᴅᴀ', 'kan'),
+    'guj': ('ɢᴜᴊᴀʀᴀᴛɪ', 'guj'), 'gujarati': ('ɢᴜᴊᴀʀᴀᴛɪ', 'guj'),
+    'mar': ('ᴍᴀʀᴀᴛʜɪ', 'mar'), 'marathi': ('ᴍᴀʀᴀᴛʜɪ', 'mar'),
+    'pun': ('ᴘᴜɴᴊᴀʙɪ', 'pun'), 'punjabi': ('ᴘᴜɴᴊᴀʙɪ', 'pun'),
+}
+_LANG_PAT = re.compile(
+    r'\b(hin(?:di)?|eng(?:lish)?|tam(?:il)?|mal(?:ayalam)?|tel(?:ugu)?|kan(?:nada)?|guj(?:arat)?|mar(?:athi)?|pun(?:jabi)?)\b',
+    re.IGNORECASE
+)
+
+def extract_available_languages(files):
+    seen = set()
+    result = {}
+    for f in files:
+        for m in _LANG_PAT.findall(f.file_name):
+            entry = _LANG_MAP.get(m.lower())
+            if entry and entry[1] not in seen:
+                seen.add(entry[1])
+                result[entry[0]] = entry[1]
+    return result
+
+_SEASON_PAT = re.compile(r's(?:eason)?\.?\s*(\d+)', re.IGNORECASE)
+
+def extract_available_seasons(files):
+    found = set()
+    for f in files:
+        for m in _SEASON_PAT.findall(f.file_name):
+            found.add(int(m))
+    return [f"S{str(s).zfill(2)}" for s in sorted(found)]
 

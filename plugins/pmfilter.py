@@ -1,4 +1,4 @@
-from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed, group_setting_buttons, get_poster, get_posterx, temp, get_settings, save_group_settings, get_cap, imdb, is_check_admin, extract_request_content, log_error, clean_filename, generate_season_variations, clean_search_text, sort_files_by_episode, parse_search_query, filter_files_by_query
+from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed, group_setting_buttons, get_poster, get_posterx, temp, get_settings, save_group_settings, get_cap, imdb, is_check_admin, extract_request_content, log_error, clean_filename, generate_season_variations, clean_search_text, sort_files_by_episode, parse_search_query, filter_files_by_query, extract_available_qualities, extract_available_languages, extract_available_seasons
 import tracemalloc
 from fuzzywuzzy import process
 import logging
@@ -395,15 +395,20 @@ async def qualities_cb_handler(client: Client, query: CallbackQuery):
 
     _, key = query.data.split("#")
     search = FRESH.get(key)
+    if not search:
+        return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace(' ', '_')
 
+    all_files = temp.ALL.get(key, [])
+    qualities = extract_available_qualities(all_files) if all_files else ["360P", "480P", "720P", "1080P", "1440P", "2160P", "4K"]
+
     btn = []
-    for i in range(0, len(QUALITIES), 2):
-        q1 = QUALITIES[i]
+    for i in range(0, len(qualities), 2):
+        q1 = qualities[i]
         row = [InlineKeyboardButton(
             text=q1, callback_data=f"fq#{q1.lower()}#{key}")]
-        if i + 1 < len(QUALITIES):
-            q2 = QUALITIES[i + 1]
+        if i + 1 < len(qualities):
+            q2 = qualities[i + 1]
             row.append(InlineKeyboardButton(
                 text=q2, callback_data=f"fq#{q2.lower()}#{key}"))
         btn.append(row)
@@ -424,6 +429,8 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     _, qual, key = query.data.split("#")
     curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
     search = FRESH.get(key)
+    if not search:
+        return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace("_", " ")
     baal = qual in search
     if baal:
@@ -560,9 +567,13 @@ async def languages_cb_handler(client: Client, query: CallbackQuery):
 
     _, key = query.data.split("#")
     search = FRESH.get(key)
+    if not search:
+        return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace(' ', '_')
 
-    items = list(LANGUAGES.items())
+    all_files = temp.ALL.get(key, [])
+    lang_dict = extract_available_languages(all_files) if all_files else dict(LANGUAGES.items())
+    items = list(lang_dict.items())
     btn = []
 
     for i in range(0, len(items), 2):
@@ -588,6 +599,8 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     _, lang, key = query.data.split("#")
     curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
     search = FRESH.get(key)
+    if not search:
+        return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace("_", " ")
     baal = lang in search
     if baal:
@@ -709,27 +722,39 @@ async def seasons_cb_handler(client: Client, query: CallbackQuery):
     try:
         if int(query.from_user.id) not in [query.message.reply_to_message.from_user.id, 0]:
             return await query.answer(
-                f"⚠️ ʜᴇʟʟᴏ {query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇǫᴜᴇꜱᴛ,\nʀᴇǫᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ…",
+                f"⚠️ ʜᴇʟʟᴏ {query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇǫᴜᴇꜱᴛ,\nʀᴇǫᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ…",
                 show_alert=True,
             )
     except Exception:
         pass
     _, key = query.data.split("#")
-    search = FRESH.get(key).replace(" ", "_")
+    search = FRESH.get(key)
+    if not search:
+        return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
+    search = search.replace(" ", "_")
     req = query.from_user.id
     offset = 0
+
+    all_files = temp.ALL.get(key, [])
+    seasons = extract_available_seasons(all_files) if all_files else SEASONS
+
     btn: list[list[InlineKeyboardButton]] = []
-    for i in range(0, len(SEASONS) - 1, 2):
+    for i in range(0, len(seasons) - 1, 2):
         btn.append([
             InlineKeyboardButton(
-                f"Sᴇᴀꜱᴏɴ {SEASONS[i][1:]}", callback_data=f"fs#{SEASONS[i].lower()}#{key}"),
+                f"Sᴇᴀꜱᴏɴ {seasons[i][1:]}", callback_data=f"fs#{seasons[i].lower()}#{key}"),
             InlineKeyboardButton(
-                f"Sᴇᴀꜱᴏɴ {SEASONS[i+1][1:]}", callback_data=f"fs#{SEASONS[i+1].lower()}#{key}")
+                f"Sᴇᴀꜱᴏɴ {seasons[i+1][1:]}", callback_data=f"fs#{seasons[i+1].lower()}#{key}")
+        ])
+    if len(seasons) % 2 == 1:
+        btn.append([
+            InlineKeyboardButton(
+                f"Sᴇᴀꜱᴏɴ {seasons[-1][1:]}", callback_data=f"fs#{seasons[-1].lower()}#{key}")
         ])
 
     btn.insert(
         0,
-        [InlineKeyboardButton("⇊ ꜱᴇʟᴇᴄᴛ ꜱᴇᴀꜱᴏɴ ⇊", callback_data="ident")],
+        [InlineKeyboardButton("⇊ ꜱᴇʟᴇᴄᴛ ꜱᴇᴀꜱᴏɴ ⇊", callback_data="ident")],
     )
     btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭",
                callback_data=f"next_{req}_{key}_{offset}")])
@@ -740,7 +765,10 @@ async def seasons_cb_handler(client: Client, query: CallbackQuery):
 @Client.on_callback_query(filters.regex(r"^fs#"))
 async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
     _, season_tag, key = query.data.split("#")
-    search = FRESH.get(key).replace("_", " ")
+    search = FRESH.get(key)
+    if not search:
+        return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
+    search = search.replace("_", " ")
     season_tag = season_tag.lower()
     if season_tag == "homepage":
         search_final = search
