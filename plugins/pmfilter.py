@@ -882,10 +882,6 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
 @Client.on_callback_query(group=10)
 async def cb_handler(client: Client, query: CallbackQuery):
     srcData = query.data
-    try:
-        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
-    except:
-        pass
     if query.data == "close_data":
         try:
             user = query.message.reply_to_message.from_user.id
@@ -1122,6 +1118,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("unavailable"):
         ident, from_user = query.data.split("#")
+        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
         btn = [
             [InlineKeyboardButton("⚠️ ᴜɴᴀᴠᴀɪʟᴀʙʟᴇ ⚠️",
                                   callback_data=f"unalert#{from_user}")]
@@ -1153,6 +1150,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("Not_Released"):
         ident, from_user = query.data.split("#")
+        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
         btn = [[InlineKeyboardButton(
             "📌 Not Released 📌", callback_data=f"nralert#{from_user}")]]
         btn2 = [[
@@ -1193,6 +1191,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("Type_Correct_Spelling"):
         ident, from_user = query.data.split("#")
+        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
         btn = [[
             InlineKeyboardButton("♨️ Type Correct Spelling ♨️",
                                  callback_data=f"wsalert#{from_user}")
@@ -1235,6 +1234,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("Not_Available_In_The_Hindi"):
         ident, from_user = query.data.split("#")
+        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
         btn = [[
             InlineKeyboardButton(
                 "⚜️ Not Available In The Hindi ⚜️", callback_data=f"hnalert#{from_user}")
@@ -1277,6 +1277,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("uploaded"):
         ident, from_user = query.data.split("#")
+        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
         btn = [[
             InlineKeyboardButton(
                 "🟢 ᴜᴘʟᴏᴀᴅᴇᴅ 🟢", callback_data=f"upalert#{from_user}")
@@ -1323,6 +1324,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("already_available"):
         ident, from_user = query.data.split("#")
+        link = await client.create_chat_invite_link(int(REQST_CHANNEL))
         btn = [[
             InlineKeyboardButton("♻️ ᴀʟʀᴇᴀᴅʏ ᴀᴠᴀɪʟᴀʙʟᴇ ♻️",
                                  callback_data=f"alalert#{from_user}")
@@ -1721,7 +1723,6 @@ async def cb_handler(client: Client, query: CallbackQuery):
             btn = await group_setting_buttons(int(grp_id))
             reply_markup = InlineKeyboardMarkup(btn)
             await query.message.edit_reply_markup(reply_markup)
-    await query.answer(MSG_ALRT)
 
 
 async def auto_filter(client, msg, spoll=False):
