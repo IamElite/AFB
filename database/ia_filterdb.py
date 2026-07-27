@@ -247,30 +247,6 @@ async def get_search_results(chat_id, query, file_type=None, max_results=None, o
 
     return files, next_offset, total_results
 
-async def get_search_count(chat_id, search):
-    """Quick count check for cache validation — ~50ms vs 2-5s for full fetch."""
-    search = search.strip() if isinstance(search, str) else str(search)
-    if not search:
-        return 0
-    if ' ' in search:
-        words = [re.escape(w) for w in search.split()]
-        raw_pattern = r'.*'.join(words)
-    else:
-        raw_pattern = r"\b" + re.escape(search) + r"\b"
-    try:
-        regex = re.compile(raw_pattern, flags=re.IGNORECASE)
-    except re.error:
-        return 0
-    if USE_CAPTION_FILTER:
-        filter_mongo = {"$or": [{"file_name": regex}, {"caption": regex}]}
-    else:
-        filter_mongo = {"file_name": regex}
-    c1 = await Media.count_documents(filter_mongo)
-    c2 = 0
-    if MULTIPLE_DB:
-        c2 = await Media2.count_documents(filter_mongo)
-    return c1 + c2
-
 async def get_bad_files(query, file_type=None):
     query = query.strip()
     if not query:

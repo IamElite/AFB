@@ -2,7 +2,7 @@ from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed,
 import tracemalloc
 from fuzzywuzzy import process
 import logging
-from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files, get_search_count
+from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files
 from database.config_db import mdb
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid, ChatAdminRequired, UserNotParticipant
 from pyrogram import Client, filters, enums
@@ -157,15 +157,7 @@ async def next_page(bot, query):
         await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
         return
     all_files = temp.ALL.get(key)
-    if all_files:
-        db_count = await get_search_count(query.message.chat.id, search)
-        if db_count != len(all_files):
-            all_files, _, _ = await get_search_results(query.message.chat.id, search, offset=0, filter=True, fetch_all=True)
-            if not all_files:
-                return
-            all_files = sort_files_by_episode(all_files)
-            temp.ALL[key] = all_files
-    else:
+    if not all_files:
         all_files, _, _ = await get_search_results(query.message.chat.id, search, offset=0, filter=True, fetch_all=True)
         if not all_files:
             return
@@ -475,7 +467,6 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
-    all_files = sort_files_by_episode(all_files)
     temp.ALL[key] = all_files
     settings = await get_settings(message.chat.id)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
@@ -658,7 +649,6 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
-    all_files = sort_files_by_episode(all_files)
     temp.ALL[key] = all_files
     settings = await get_settings(message.chat.id)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
@@ -841,7 +831,6 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
     if not all_files:
         BUTTONS[key] = None
         return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
-    all_files = sort_files_by_episode(all_files)
     temp.ALL[key] = all_files
     settings = await get_settings(chat_id)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
