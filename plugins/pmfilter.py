@@ -404,7 +404,7 @@ async def qualities_cb_handler(client: Client, query: CallbackQuery):
     search = search.replace(' ', '_')
 
     all_files = temp.ORIGINAL.get(key, [])
-    qualities = extract_available_qualities(all_files) if all_files else ["360P", "480P", "720P", "1080P", "1440P", "2160P", "4K"]
+    qualities = extract_available_qualities(all_files) if all_files else ["144P", "240P", "360P", "480P", "720P", "1080P", "1440P", "2160P", "4K"]
 
     btn = []
     for i in range(0, len(qualities), 2):

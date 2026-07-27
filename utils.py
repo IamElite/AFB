@@ -1165,8 +1165,8 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
 
 # ponytail: dynamic filter button extraction — only show options present in results
 
-_QUALITY_PAT = re.compile(r'\b(360p|480p|720p|1080p|1440p|2160p|4k)\b', re.IGNORECASE)
-_QUALITY_ORDER = {'360P': 0, '480P': 1, '720P': 2, '1080P': 3, '1440P': 4, '2160P': 5, '4K': 6}
+_QUALITY_PAT = re.compile(r'\b(144p|240p|360p|480p|720p|1080p|1440p|2160p|4k|uhd)\b', re.IGNORECASE)
+_QUALITY_ORDER = {'144P': 0, '240P': 1, '360P': 2, '480P': 3, '720P': 4, '1080P': 5, '1440P': 6, '2160P': 7, '4K': 8, 'UHD': 8}
 
 def extract_available_qualities(files):
     found = set()
