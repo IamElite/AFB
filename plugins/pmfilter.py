@@ -163,6 +163,7 @@ async def next_page(bot, query):
             return
         all_files = sort_files_by_episode(all_files)
         temp.ALL[key] = all_files
+        temp.ORIGINAL[key] = all_files
     settings = await get_settings(query.message.chat.id)
     total = len(all_files)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
@@ -402,7 +403,7 @@ async def qualities_cb_handler(client: Client, query: CallbackQuery):
         return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace(' ', '_')
 
-    all_files = temp.ALL.get(key, [])
+    all_files = temp.ORIGINAL.get(key, [])
     qualities = extract_available_qualities(all_files) if all_files else ["360P", "480P", "720P", "1080P", "1440P", "2160P", "4K"]
 
     btn = []
@@ -451,14 +452,14 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     if qual != "homepage":
         search = f"{search} {qual}"
     BUTTONS[key] = search
-    base_files = temp.ALL.get(key)
+    base_files = temp.ORIGINAL.get(key)
     if not base_files:
         base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
         if not base_files:
             await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
             return
         base_files = sort_files_by_episode(base_files)
-        temp.ALL[key] = base_files
+        temp.ORIGINAL[key] = base_files
     if qual != "homepage":
         parsed = {'quality': qual, 'season': None, 'ep_start': None, 'ep_end': None, 'lang': None}
         all_files = filter_files_by_query(base_files, parsed)
@@ -586,7 +587,7 @@ async def languages_cb_handler(client: Client, query: CallbackQuery):
         return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace(' ', '_')
 
-    all_files = temp.ALL.get(key, [])
+    all_files = temp.ORIGINAL.get(key, [])
     lang_dict = extract_available_languages(all_files) if all_files else dict(LANGUAGES.items())
     items = list(lang_dict.items())
     btn = []
@@ -633,14 +634,14 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     if lang != "homepage":
         search = f"{search} {lang}"
     BUTTONS[key] = search
-    base_files = temp.ALL.get(key)
+    base_files = temp.ORIGINAL.get(key)
     if not base_files:
         base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
         if not base_files:
             await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
             return
         base_files = sort_files_by_episode(base_files)
-        temp.ALL[key] = base_files
+        temp.ORIGINAL[key] = base_files
     if lang != "homepage":
         parsed = {'quality': None, 'season': None, 'ep_start': None, 'ep_end': None, 'lang': lang}
         all_files = filter_files_by_query(base_files, parsed)
@@ -762,7 +763,7 @@ async def seasons_cb_handler(client: Client, query: CallbackQuery):
     req = query.from_user.id
     offset = 0
 
-    all_files = temp.ALL.get(key, [])
+    all_files = temp.ORIGINAL.get(key, [])
     seasons = extract_available_seasons(all_files) if all_files else SEASONS
 
     btn: list[list[InlineKeyboardButton]] = []
@@ -814,14 +815,14 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
 
     chat_id = query.message.chat.id
     req = query.from_user.id
-    base_files = temp.ALL.get(key)
+    base_files = temp.ORIGINAL.get(key)
     if not base_files:
         base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
         if not base_files:
             BUTTONS[key] = None
             return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
         base_files = sort_files_by_episode(base_files)
-        temp.ALL[key] = base_files
+        temp.ORIGINAL[key] = base_files
     if season_tag != "homepage":
         season_number = int(season_tag[1:])
         parsed = {'quality': None, 'season': season_number, 'ep_start': None, 'ep_end': None, 'lang': None}
@@ -1865,6 +1866,7 @@ async def auto_filter(client, msg, spoll=False):
         FRESH[key] = search
         temp.GETALL[key] = files
         temp.ALL[key] = all_files
+        temp.ORIGINAL[key] = all_files
         temp.SHORT[message.from_user.id] = message.chat.id
         if settings.get('button'):
             btn = [

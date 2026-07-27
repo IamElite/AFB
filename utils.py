@@ -53,6 +53,7 @@ class temp(object):
     SETTINGS = {}
     GETALL = {}
     ALL = {}
+    ORIGINAL = {}
     SHORT = {}
     IMDB_CAP = {}
     VERIFICATIONS = {}
