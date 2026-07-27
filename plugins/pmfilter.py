@@ -2,7 +2,7 @@ from utils import get_random_mix_id, get_size, is_subscribed, is_req_subscribed,
 import tracemalloc
 from fuzzywuzzy import process
 import logging
-from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files
+from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files, get_search_count
 from database.config_db import mdb
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid, ChatAdminRequired, UserNotParticipant
 from pyrogram import Client, filters, enums
@@ -156,10 +156,21 @@ async def next_page(bot, query):
     if not search:
         await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
         return
-    all_files, total_count, _ = await get_search_results(query.message.chat.id, search, offset=0, filter=True, fetch_all=True)
-    if not all_files:
-        return
-    all_files = sort_files_by_episode(all_files)
+    all_files = temp.ALL.get(key)
+    if all_files:
+        db_count = await get_search_count(query.message.chat.id, search)
+        if db_count != len(all_files):
+            all_files, _, _ = await get_search_results(query.message.chat.id, search, offset=0, filter=True, fetch_all=True)
+            if not all_files:
+                return
+            all_files = sort_files_by_episode(all_files)
+            temp.ALL[key] = all_files
+    else:
+        all_files, _, _ = await get_search_results(query.message.chat.id, search, offset=0, filter=True, fetch_all=True)
+        if not all_files:
+            return
+        all_files = sort_files_by_episode(all_files)
+        temp.ALL[key] = all_files
     settings = await get_settings(query.message.chat.id)
     total = len(all_files)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
@@ -448,11 +459,24 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     if qual != "homepage":
         search = f"{search} {qual}"
     BUTTONS[key] = search
-    all_files, total_count, _ = await get_search_results(chat_id, search, offset=0, filter=True, fetch_all=True)
+    base_files = temp.ALL.get(key)
+    if not base_files:
+        base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
+        if not base_files:
+            await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
+            return
+        base_files = sort_files_by_episode(base_files)
+        temp.ALL[key] = base_files
+    if qual != "homepage":
+        parsed = {'quality': qual, 'season': None, 'ep_start': None, 'ep_end': None, 'lang': None}
+        all_files = filter_files_by_query(base_files, parsed)
+    else:
+        all_files = base_files
     if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
     all_files = sort_files_by_episode(all_files)
+    temp.ALL[key] = all_files
     settings = await get_settings(message.chat.id)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
     files = all_files[:page_size]
@@ -618,11 +642,24 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     if lang != "homepage":
         search = f"{search} {lang}"
     BUTTONS[key] = search
-    all_files, total_count, _ = await get_search_results(chat_id, search, offset=0, filter=True, fetch_all=True)
+    base_files = temp.ALL.get(key)
+    if not base_files:
+        base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
+        if not base_files:
+            await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
+            return
+        base_files = sort_files_by_episode(base_files)
+        temp.ALL[key] = base_files
+    if lang != "homepage":
+        parsed = {'quality': None, 'season': None, 'ep_start': None, 'ep_end': None, 'lang': lang}
+        all_files = filter_files_by_query(base_files, parsed)
+    else:
+        all_files = base_files
     if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
     all_files = sort_files_by_episode(all_files)
+    temp.ALL[key] = all_files
     settings = await get_settings(message.chat.id)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
     files = all_files[:page_size]
@@ -787,11 +824,25 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
 
     chat_id = query.message.chat.id
     req = query.from_user.id
-    all_files, total_count, _ = await get_search_results(chat_id, query_input, offset=0, filter=True, fetch_all=True)
+    base_files = temp.ALL.get(key)
+    if not base_files:
+        base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
+        if not base_files:
+            BUTTONS[key] = None
+            return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
+        base_files = sort_files_by_episode(base_files)
+        temp.ALL[key] = base_files
+    if season_tag != "homepage":
+        season_number = int(season_tag[1:])
+        parsed = {'quality': None, 'season': season_number, 'ep_start': None, 'ep_end': None, 'lang': None}
+        all_files = filter_files_by_query(base_files, parsed)
+    else:
+        all_files = base_files
     if not all_files:
         BUTTONS[key] = None
         return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
     all_files = sort_files_by_episode(all_files)
+    temp.ALL[key] = all_files
     settings = await get_settings(chat_id)
     page_size = 10 if settings.get("max_btn") else int(MAX_B_TN)
     files = all_files[:page_size]
