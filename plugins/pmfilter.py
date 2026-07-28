@@ -460,11 +460,13 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
             return
         base_files = sort_files_by_episode(base_files)
         temp.ORIGINAL[key] = base_files
-    if qual != "homepage":
-        parsed = {'quality': qual, 'season': None, 'ep_start': None, 'ep_end': None, 'lang': None}
-        all_files = filter_files_by_query(base_files, parsed)
+    if qual == "homepage":
+        temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
     else:
-        all_files = base_files
+        if key not in temp.FILTERS:
+            temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
+        temp.FILTERS[key]['quality'] = qual
+    all_files = filter_files_by_query(base_files, temp.FILTERS.get(key, {}))
     if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
@@ -642,11 +644,13 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
             return
         base_files = sort_files_by_episode(base_files)
         temp.ORIGINAL[key] = base_files
-    if lang != "homepage":
-        parsed = {'quality': None, 'season': None, 'ep_start': None, 'ep_end': None, 'lang': lang}
-        all_files = filter_files_by_query(base_files, parsed)
+    if lang == "homepage":
+        temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
     else:
-        all_files = base_files
+        if key not in temp.FILTERS:
+            temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
+        temp.FILTERS[key]['lang'] = lang
+    all_files = filter_files_by_query(base_files, temp.FILTERS.get(key, {}))
     if not all_files:
         await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ᴡᴇʀᴇ ꜰᴏᴜɴᴅ 🚫", show_alert=1)
         return
@@ -823,12 +827,14 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
             return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
         base_files = sort_files_by_episode(base_files)
         temp.ORIGINAL[key] = base_files
-    if season_tag != "homepage":
-        season_number = int(season_tag[1:])
-        parsed = {'quality': None, 'season': season_number, 'ep_start': None, 'ep_end': None, 'lang': None}
-        all_files = filter_files_by_query(base_files, parsed)
+    if season_tag == "homepage":
+        temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
     else:
-        all_files = base_files
+        season_number = int(season_tag[1:])
+        if key not in temp.FILTERS:
+            temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
+        temp.FILTERS[key]['season'] = season_number
+    all_files = filter_files_by_query(base_files, temp.FILTERS.get(key, {}))
     if not all_files:
         BUTTONS[key] = None
         return await query.answer("🚫 ɴᴏ ꜰɪʟᴇꜱ ꜰᴏᴜɴᴅ 🚫", show_alert=True)
@@ -1867,6 +1873,7 @@ async def auto_filter(client, msg, spoll=False):
         temp.GETALL[key] = files
         temp.ALL[key] = all_files
         temp.ORIGINAL[key] = all_files
+        temp.FILTERS[key] = {'quality': None, 'lang': None, 'season': None}
         temp.SHORT[message.from_user.id] = message.chat.id
         if settings.get('button'):
             btn = [
