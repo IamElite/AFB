@@ -403,7 +403,7 @@ async def qualities_cb_handler(client: Client, query: CallbackQuery):
         return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace(' ', '_')
 
-    all_files = temp.ORIGINAL.get(key, [])
+    all_files = temp.ORIGINAL.get(key) or temp.ALL.get(key, [])
     qualities = extract_available_qualities(all_files) if all_files else ["144P", "240P", "360P", "480P", "720P", "1080P", "1440P", "2160P", "4K"]
 
     btn = []
@@ -452,7 +452,7 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     if qual != "homepage":
         search = f"{search} {qual}"
     BUTTONS[key] = search
-    base_files = temp.ORIGINAL.get(key)
+    base_files = temp.ORIGINAL.get(key) or temp.ALL.get(key)
     if not base_files:
         base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
         if not base_files:
@@ -587,7 +587,7 @@ async def languages_cb_handler(client: Client, query: CallbackQuery):
         return await query.answer("⚠️ Search expired. Please search again.", show_alert=True)
     search = search.replace(' ', '_')
 
-    all_files = temp.ORIGINAL.get(key, [])
+    all_files = temp.ORIGINAL.get(key) or temp.ALL.get(key, [])
     lang_dict = extract_available_languages(all_files) if all_files else dict(LANGUAGES.items())
     items = list(lang_dict.items())
     btn = []
@@ -634,7 +634,7 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     if lang != "homepage":
         search = f"{search} {lang}"
     BUTTONS[key] = search
-    base_files = temp.ORIGINAL.get(key)
+    base_files = temp.ORIGINAL.get(key) or temp.ALL.get(key)
     if not base_files:
         base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
         if not base_files:
@@ -763,7 +763,7 @@ async def seasons_cb_handler(client: Client, query: CallbackQuery):
     req = query.from_user.id
     offset = 0
 
-    all_files = temp.ORIGINAL.get(key, [])
+    all_files = temp.ORIGINAL.get(key) or temp.ALL.get(key, [])
     seasons = extract_available_seasons(all_files) if all_files else SEASONS
 
     btn: list[list[InlineKeyboardButton]] = []
@@ -815,7 +815,7 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
 
     chat_id = query.message.chat.id
     req = query.from_user.id
-    base_files = temp.ORIGINAL.get(key)
+    base_files = temp.ORIGINAL.get(key) or temp.ALL.get(key)
     if not base_files:
         base_files, _, _ = await get_search_results(chat_id, FRESH.get(key), offset=0, filter=True, fetch_all=True)
         if not base_files:
