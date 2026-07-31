@@ -564,6 +564,14 @@ def clean_filename(file_or_name):
     )
     return file_name
 
+def _get_search_text(file):
+    caption = getattr(file, 'caption', None)
+    if caption:
+        clean = re.sub(r'<[^>]+>', '', str(caption)).strip()
+        if clean:
+            return clean
+    return file.file_name
+
 def extract_season_episode(filename: str) -> tuple:
     filename_lower = filename.lower()
     season_match = re.search(r's(?:eason)?\.?\s*(\d+)', filename_lower)
@@ -633,22 +641,22 @@ def filter_files_by_query(files: list, parsed: dict) -> list:
     result = files
     if parsed.get('season') is not None:
         season_str = f"s{parsed['season']:02d}"
-        result = [f for f in result if re.search(season_str, f.file_name, re.IGNORECASE)]
+        result = [f for f in result if re.search(season_str, _get_search_text(f), re.IGNORECASE)]
     if parsed.get('ep_start') is not None:
         eps_to_find = set(range(parsed['ep_start'], (parsed.get('ep_end') or parsed['ep_start']) + 1))
-        def has_any_ep(fname):
-            fname_lower = fname.lower()
+        def has_any_ep(text):
+            text_lower = text.lower()
             for ep in eps_to_find:
-                if re.search(rf'(?:e|ep|episode)\s*{ep}\b', fname_lower, re.IGNORECASE):
+                if re.search(rf'(?:e|ep|episode)\s*{ep}\b', text_lower, re.IGNORECASE):
                     return True
             return False
-        result = [f for f in result if has_any_ep(f.file_name)]
+        result = [f for f in result if has_any_ep(_get_search_text(f))]
     if parsed.get('quality'):
         q = parsed['quality'].lower()
-        result = [f for f in result if q in f.file_name.lower()]
+        result = [f for f in result if q in _get_search_text(f).lower()]
     if parsed.get('lang'):
         lang = parsed['lang'].lower()
-        result = [f for f in result if lang in f.file_name.lower()]
+        result = [f for f in result if lang in _get_search_text(f).lower()]
     return result
 
 
@@ -1185,7 +1193,7 @@ _QUALITY_ORDER = {'144P': 0, '240P': 1, '360P': 2, '480P': 3, '720P': 4, '1080P'
 def extract_available_qualities(files):
     found = set()
     for f in files:
-        for m in _QUALITY_PAT.findall(f.file_name):
+        for m in _QUALITY_PAT.findall(_get_search_text(f)):
             found.add(m.upper())
     return sorted(found, key=lambda q: _QUALITY_ORDER.get(q, 99))
 
@@ -1209,7 +1217,7 @@ def extract_available_languages(files):
     seen = set()
     result = {}
     for f in files:
-        for m in _LANG_PAT.findall(f.file_name):
+        for m in _LANG_PAT.findall(_get_search_text(f)):
             entry = _LANG_MAP.get(m.lower())
             if entry and entry[1] not in seen:
                 seen.add(entry[1])
@@ -1221,7 +1229,7 @@ _SEASON_PAT = re.compile(r's(?:eason)?\.?\s*(\d+)', re.IGNORECASE)
 def extract_available_seasons(files):
     found = set()
     for f in files:
-        for m in _SEASON_PAT.findall(f.file_name):
+        for m in _SEASON_PAT.findall(_get_search_text(f)):
             found.add(int(m))
     return [f"S{str(s).zfill(2)}" for s in sorted(found)]
 
