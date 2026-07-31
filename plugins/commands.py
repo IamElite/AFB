@@ -340,7 +340,7 @@ async def start(client, message):
                     file_id = file.file_id
                     files_ = await get_file_details(file_id)
                     files1 = files_[0]
-                    title = clean_filename(files1.file_name)
+                    title = clean_filename(files1)
                     cover = files1.cover
                     size = get_size(files1.file_size)
                     f_caption = files1.caption
@@ -353,7 +353,7 @@ async def start(client, message):
                             logger.exception(e)
                             f_caption = f_caption
                     if f_caption is None:
-                        f_caption = f"{clean_filename(files1.file_name)}"
+                        f_caption = f"{clean_filename(files1)}"
                     btn = await stream_buttons(message.from_user.id, file_id)
                     msg = await client.send_cached_media(
                         chat_id=message.from_user.id,
@@ -401,7 +401,7 @@ async def start(client, message):
 
                 filetype = msg.media
                 file = getattr(msg, filetype.value)
-                title = clean_filename(file.file_name)
+                title = clean_filename(file)
                 size=get_size(file.file_size)
                 f_caption = f"<code>{title}</code>"
                 settings = await get_settings(int(grp_id))
@@ -429,7 +429,7 @@ async def start(client, message):
             return await message.reply('ɴᴏ ꜱᴜᴄʜ ꜰɪʟᴇ ᴇxɪꜱᴛꜱ !')
 
         files = files_[0]
-        title = clean_filename(files.file_name)
+        title = clean_filename(files)
         size = get_size(files.file_size)
         cover = files.cover if files.cover else None
         f_caption = files.caption
@@ -443,7 +443,7 @@ async def start(client, message):
                 f_caption = f_caption
 
         if f_caption is None:
-            f_caption = clean_filename(files.file_name)
+            f_caption = clean_filename(files)
         btn = await stream_buttons(message.from_user.id, file_id)
         msg = await client.send_cached_media(
             chat_id=message.from_user.id,

@@ -541,10 +541,23 @@ async def save_group_settings(group_id, key, value):
     temp.SETTINGS.update({group_id: current})
     await db.update_settings(group_id, current)
 
-def clean_filename(file_name):
+def clean_filename(file_or_name):
+    # ponytail: caption-first display, fallback file_name
+    if hasattr(file_or_name, 'file_name'):
+        caption = getattr(file_or_name, 'caption', None)
+        if caption:
+            clean = re.sub(r'<[^>]+>', '', str(caption)).strip()
+            if clean:
+                file_name = clean
+            else:
+                file_name = file_or_name.file_name
+        else:
+            logger.debug(f"FALLBACK: caption=None, using file_name={file_or_name.file_name}")
+            file_name = file_or_name.file_name
+    else:
+        file_name = str(file_or_name)
     prefixes = ('[', '@', 'www.')
     unwanted = {word.lower() for word in BAD_WORDS}
-    
     file_name = ' '.join(
         word for word in file_name.split()
         if not (word.startswith(prefixes) or word.lower() in unwanted)
